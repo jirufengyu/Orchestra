@@ -1,0 +1,24 @@
+policy/weights/*
+policy/pi05/
+
+.vscode
+/config.json
+
+/*.json*
+/*.txt
+policy*
+logs*
+data*
+eval_result*
+
+# # local / secrets
+# .env
+# .cursor/
+__pycache__/
+assets/
+docs/
+*.egg-info/
+build/
+.env
+
+*tmp*
