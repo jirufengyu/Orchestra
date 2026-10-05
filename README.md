@@ -133,12 +133,12 @@ The spatially and temporally conditioned policy improves mean SSR from **72.77% 
 
 ## 📋 Release Plan
 
-The **agent framework is available**. Benchmark environments, the annotation pipeline, training and evaluation code, and model checkpoints are next on the release plan.
+The **agent framework is available**. The annotation pipeline and mobile policy training/serving code are also available. Benchmark environments, the remaining evaluation code, and model checkpoints are next on the release plan.
 
 - [x] Agent framework
 - [ ] RMBench-Compose benchmark
 - [ ] RMBench benchmark
-- [ ] Annotation pipeline
+- [x] Annotation pipeline
 - [ ] Training code
 - [ ] Evaluation code
 - [ ] Model checkpoints
@@ -158,3 +158,14 @@ For mobile robot integration and an OpenAI-compatible task agent:
 ```bash
 python -m pip install -e '.[mobile,openai]'
 ```
+
+Mobile **action policy and progress evaluator training and serving code** is available
+under [policy/modified_pi05](policy/modified_pi05/README.md). It includes only
+`pi05_mobile_atomic_4task_short_horizon_memory_stride3` and
+`pi05_mobile_atomic_4task_progress_evaluator_300m_stride3`, with their dependencies.
+Datasets and checkpoints are separate releases.
+
+The [MolmoPoint + SAM3 annotation pipeline](annotation/README.md) ([中文](annotation/README.zh-CN.md)) includes environment
+setup, model server commands, batch annotation, and a review UI. See the
+[agent pipeline guide](docs/agent-pipeline.md) ([中文](docs/agent-pipeline.zh-CN.md)) for how the same services
+provide online grounding and tracking to the action policy and progress evaluator.

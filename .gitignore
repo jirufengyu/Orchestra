@@ -6,9 +6,8 @@ policy/pi05/
 
 /*.json*
 /*.txt
-policy*
 logs*
-data*
+/data*/
 eval_result*
 
 # # local / secrets
@@ -16,9 +15,20 @@ eval_result*
 # .cursor/
 __pycache__/
 assets/
-docs/
+/docs/*
+!/docs/agent-pipeline.md
+!/docs/agent-pipeline.zh-CN.md
 *.egg-info/
 build/
 .env
 
 *tmp*
+
+.venv/
+checkpoints/
+ckpts*/
+wandb/
+.pytest_cache/
+
+.venv-*/
+/third_party/

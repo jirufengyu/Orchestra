@@ -2,17 +2,18 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RMBENCH_ROOT="${RMBENCH_ROOT:-/home/ypwen/RMBench}"
-OPENPI_ROOT="${OPENPI_ROOT:-/home/ypwen/openpi}"
+ANNOTATION_ROOT="$ROOT"
+OPENPI_ROOT="${OPENPI_ROOT:-$ROOT/policy/modified_pi05}"
+PROGRESS_ROOT="$ROOT/policy/modified_pi05"
 
 ACTION_CONFIG="pi05_mobile_atomic_4task_short_horizon_memory_stride3"
 PROGRESS_CONFIG="pi05_mobile_atomic_4task_progress_evaluator_300m_stride3"
-ACTION_CKPT="/home/ypwen/openpi/ckpts/jirufengyu/pi05_mobile_atomic_4task_seg_short_horizon_memory_stride3/pi05_mobile_atomic_4task_seg_short_horizon_memory_stride3/50000"
-PROGRESS_CKPT="/home/ypwen/openpi/ckpts/jirufengyu/pi05_mobile_atomic_4task_progress_evaluator_300m_stride3/mobile_progress_evaluator_300m_stride3/50000"
-ACTION_GPU=2
-PROGRESS_GPU=6
-MOLMO_GPU=7
-SAM_GPU=7
+ACTION_CKPT="${ACTION_CKPT:-/path/to/action_checkpoint/50000}"
+PROGRESS_CKPT="${PROGRESS_CKPT:-/path/to/progress_checkpoint/50000}"
+ACTION_GPU=0
+PROGRESS_GPU=1
+MOLMO_GPU=2
+SAM_GPU=3
 ACTION_PORT=8020
 PROGRESS_PORT=8030
 MOLMO_PORT=8766
@@ -54,9 +55,10 @@ Other options:
   --log-dir PATH             default: embodied-agent/logs/mobile_pi05_agent/<timestamp>
 
 Runtime environment defaults:
-  action/progress/SAM/Agent  /home/ypwen/openpi/.venv/bin/python
-  Molmo                      /data/ypwen/envs/molmopoint/bin/python
-  OpenPI source root         /home/ypwen/openpi
+  action/progress/Agent      policy/modified_pi05/.venv/bin/python
+  SAM                        .venv-sam/bin/python
+  Molmo                      .venv-molmo/bin/python
+  OpenPI source root         policy/modified_pi05
 EOF
 }
 
@@ -109,13 +111,13 @@ done
 [[ -d "$PROGRESS_CKPT" ]] || { echo "错误: progress checkpoint 不存在: $PROGRESS_CKPT" >&2; exit 1; }
 
 PYTHON_ACTION="${PYTHON_ACTION:-$OPENPI_ROOT/.venv/bin/python}"
-PYTHON_PROGRESS="${PYTHON_PROGRESS:-$OPENPI_ROOT/.venv/bin/python}"
-PYTHON_MOLMO="${PYTHON_MOLMO:-/data/ypwen/envs/molmopoint/bin/python}"
-PYTHON_SAM="${PYTHON_SAM:-$OPENPI_ROOT/.venv/bin/python}"
+PYTHON_PROGRESS="${PYTHON_PROGRESS:-$PROGRESS_ROOT/.venv/bin/python}"
+PYTHON_MOLMO="${PYTHON_MOLMO:-$ROOT/.venv-molmo/bin/python}"
+PYTHON_SAM="${PYTHON_SAM:-$ROOT/.venv-sam/bin/python}"
 AGENT_PYTHON="${AGENT_PYTHON:-$OPENPI_ROOT/.venv/bin/python}"
-PROGRESS_SERVER_SCRIPT="${PROGRESS_SERVER_SCRIPT:-$RMBENCH_ROOT/policy/pi05/scripts/serve_progress_evaluator.py}"
-MOLMO_CHECKPOINT="${MOLMO_CHECKPOINT:-/data/ypwen/MolmoPoint-8B}"
-SAM_CHECKPOINT="${SAM_CHECKPOINT:-/data/ypwen/sam/sam3.1_multiplex.pt}"
+PROGRESS_SERVER_SCRIPT="${PROGRESS_SERVER_SCRIPT:-$ROOT/policy/modified_pi05/scripts/serve_progress_evaluator.py}"
+MOLMO_CHECKPOINT="${MOLMO_CHECKPOINT:-/path/to/MolmoPoint-8B}"
+SAM_CHECKPOINT="${SAM_CHECKPOINT:-/path/to/sam/sam3.1_multiplex.pt}"
 [[ -x "$PYTHON_ACTION" ]] || { echo "错误: Action Python 不存在: $PYTHON_ACTION" >&2; exit 1; }
 [[ -x "$PYTHON_PROGRESS" ]] || { echo "错误: Progress Python 不存在: $PYTHON_PROGRESS" >&2; exit 1; }
 [[ -x "$PYTHON_MOLMO" ]] || { echo "错误: Molmo Python 不存在: $PYTHON_MOLMO" >&2; exit 1; }
@@ -126,15 +128,16 @@ SAM_CHECKPOINT="${SAM_CHECKPOINT:-/data/ypwen/sam/sam3.1_multiplex.pt}"
 [[ -f "$SAM_CHECKPOINT" ]] || { echo "错误: SAM checkpoint 不存在: $SAM_CHECKPOINT" >&2; exit 1; }
 
 OPENPI_PYTHONPATH="$OPENPI_ROOT/src:$OPENPI_ROOT/packages/openpi-client/src"
+PROGRESS_PYTHONPATH="$PROGRESS_ROOT/src:$PROGRESS_ROOT/packages/openpi-client/src"
 env PYTHONPATH="$OPENPI_PYTHONPATH" "$PYTHON_ACTION" -c \
     "import openpi, openpi_client" || { echo "错误: action 环境缺少 openpi/openpi_client" >&2; exit 1; }
-env PYTHONPATH="$OPENPI_PYTHONPATH" "$PYTHON_PROGRESS" -c \
+env PYTHONPATH="$PROGRESS_PYTHONPATH" "$PYTHON_PROGRESS" -c \
     "import openpi, openpi_client, safetensors" || { echo "错误: progress 环境依赖不完整" >&2; exit 1; }
-env PYTHONPATH="$RMBENCH_ROOT" "$PYTHON_MOLMO" -c \
+env PYTHONPATH="$ANNOTATION_ROOT" "$PYTHON_MOLMO" -c \
     "import flask, transformers" || { echo "错误: Molmo 环境依赖不完整" >&2; exit 1; }
-env PYTHONPATH="$RMBENCH_ROOT" "$PYTHON_SAM" -c \
+env PYTHONPATH="$ANNOTATION_ROOT" "$PYTHON_SAM" -c \
     "import flask, sam3" || { echo "错误: SAM 环境依赖不完整" >&2; exit 1; }
-env PYTHONPATH="$ROOT/src:$OPENPI_PYTHONPATH" "$AGENT_PYTHON" -c \
+env PYTHONPATH="$ROOT:$OPENPI_PYTHONPATH" "$AGENT_PYTHON" -c \
     "import embodied_agent, openpi_client, websockets" || { echo "错误: Agent 环境依赖不完整" >&2; exit 1; }
 
 if [[ -z "$LOG_DIR" ]]; then
@@ -155,7 +158,7 @@ start_component() {
     shift 2
     local component_log="$LOG_DIR/${name}.log"
 
-    echo "[$(date '+%F %T')] START name=$name gpu=$gpu command=$*" >>"$UNIFIED_LOG"
+    echo "[$(date '+%F %T')] START name=$name gpu=$gpu" >>"$UNIFIED_LOG"
     nohup env CUDA_VISIBLE_DEVICES="$gpu" "$@" >"$component_log" 2>&1 &
     local pid=$!
     STARTED_PIDS+=("$pid")
@@ -168,19 +171,19 @@ start_component() {
 
 ACTION_PID="$(start_component action "$ACTION_GPU" env PYTHONPATH="$OPENPI_PYTHONPATH" \
     "$PYTHON_ACTION" "$OPENPI_ROOT/scripts/serve_policy.py" --port "$ACTION_PORT" \
-    policy:checkpoint --policy.config="$ACTION_CONFIG" --policy.dir="$ACTION_CKPT")"
-PROGRESS_PID="$(start_component progress "$PROGRESS_GPU" env PYTHONPATH="$OPENPI_PYTHONPATH" \
+    --policy.config="$ACTION_CONFIG" --policy.dir="$ACTION_CKPT")"
+PROGRESS_PID="$(start_component progress "$PROGRESS_GPU" env PYTHONPATH="$PROGRESS_PYTHONPATH" \
     "$PYTHON_PROGRESS" "$PROGRESS_SERVER_SCRIPT" \
     --config "$PROGRESS_CONFIG" --checkpoint-dir "$PROGRESS_CKPT" \
     --port "$PROGRESS_PORT" --seg-representation mask)"
-MOLMO_PID="$(start_component molmo "$MOLMO_GPU" env PYTHONPATH="$RMBENCH_ROOT" "$PYTHON_MOLMO" \
+MOLMO_PID="$(start_component molmo "$MOLMO_GPU" env PYTHONPATH="$ANNOTATION_ROOT" "$PYTHON_MOLMO" \
     -m annotation.molmopoint_inference_server --checkpoint "$MOLMO_CHECKPOINT" \
     --host "$HOST" --port "$MOLMO_PORT" --device cuda --warm-up)"
-SAM_PID="$(start_component sam "$SAM_GPU" env PYTHONPATH="$RMBENCH_ROOT" "$PYTHON_SAM" \
+SAM_PID="$(start_component sam "$SAM_GPU" env PYTHONPATH="$ANNOTATION_ROOT" "$PYTHON_SAM" \
     -m annotation.sam3_inference_server --checkpoint "$SAM_CHECKPOINT" \
     --host "$HOST" --port "$SAM_PORT" --device cuda --warm-up)"
 AGENT_ARGS=(
-    "$ROOT/examples/serve_mobile_gateway.py"
+    "$ROOT/scripts/serve_mobile_gateway.py"
     --host "$HOST" --port "$AGENT_PORT"
     --action-host "$HOST" --action-port "$ACTION_PORT"
     --progress-host "$HOST" --progress-port "$PROGRESS_PORT"
@@ -190,7 +193,7 @@ AGENT_ARGS=(
     --llm-api-key "$LLM_API_KEY"
     --llm-api-base "$LLM_API_BASE"
 )
-AGENT_PID="$(start_component agent "" env PYTHONPATH="$ROOT/src:$OPENPI_PYTHONPATH" "$AGENT_PYTHON" \
+AGENT_PID="$(start_component agent "" env PYTHONPATH="$ROOT:$OPENPI_PYTHONPATH" "$AGENT_PYTHON" \
     "${AGENT_ARGS[@]}")"
 
 sleep 3

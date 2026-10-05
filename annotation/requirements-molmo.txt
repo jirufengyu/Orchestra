@@ -1,0 +1,8 @@
+# Separate environment: do not replace the policy's patched Transformers 4.53.2.
+transformers==4.57.1
+torch==2.6.0
+torchvision==0.21.0
+accelerate>=0.26
+pillow>=11
+einops
+decord2

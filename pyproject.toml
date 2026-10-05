@@ -20,13 +20,14 @@ mobile = [
     "pandas",
     "pillow",
     "pyarrow",
-    "websockets",
+    "websockets>=14.2",
 ]
+annotation = ["flask>=3.1,<4", "numpy>=1.26,<2", "pillow>=11"]
 dev = ["pytest>=8"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["embodied_agent*"]
+include = ["embodied_agent*", "annotation*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
