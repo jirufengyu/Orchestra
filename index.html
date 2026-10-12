@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orchestra · Long-Horizon Robotic Manipulation</title>
+<meta name="description" content="Orchestra follows multimodal instructions for long-horizon robotic manipulation through task planning, visual grounding, working memory, and progress-driven execution.">
+<meta name="theme-color" content="#f8f9f5">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><a class="wordmark" href="#" aria-label="Orchestra home"><span aria-hidden="true">≋</span> Orchestra</a><nav aria-label="Main navigation"><a href="#overview">Overview</a><a href="#demos">Demos</a><a href="#results">Results</a></nav></header>
+<main id="main">
+<section class="hero" aria-labelledby="hero-title"><p class="eyebrow">Multimodal instructions. Coordinated action.</p><h1 id="hero-title">Orchestra<span class="title-dot">.</span></h1><p class="tagline">Let the Mind Conceive,<br>Let the Hand Achieve.</p><p class="subtitle">Following Multimodal Instructions for<br class="desktop-break"> Long-Horizon Robotic Manipulation</p>
+<div class="resource-links" aria-label="Project resources">
+<a class="resource primary" href="https://github.com/jirufengyu/Orchestra" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">⌘</span> GitHub <span aria-hidden="true">↗</span></a>
+<!-- Replace these disabled placeholders with links when the resources are available. -->
+<button class="resource" type="button" disabled><span aria-hidden="true">🤗</span> Hugging Face <small>Coming soon</small></button>
+<button class="resource" type="button" disabled><span class="paper-icon" aria-hidden="true">↗</span> arXiv <small>Coming soon</small></button>
+</div>
+<p class="hero-note">Task planning <span>·</span> Visual grounding <span>·</span> Working memory <span>·</span> Progress-driven execution</p>
+</section>
+<figure class="framework"><div class="figure-label"><span>THE FRAMEWORK</span><span>Reason → Ground → Act → Evaluate</span></div><img src="media/framework.png" alt="Orchestra framework connecting task-level reasoning and robot action through a shared execution context." fetchpriority="high"><figcaption>From a complete instruction to a coordinated sequence of robot actions.</figcaption></figure>
+<section id="overview" class="section"><div class="section-heading"><p class="eyebrow">01 / Overview</p><h2>A shared context.<br>A coordinated robot.</h2></div><div class="prose"><p>Following a long instruction requires a robot to remember what it has done, identify what to manipulate next, and decide when each step is complete. <strong>Orchestra</strong> brings these decisions together in an agent framework that coordinates planning, perception, and execution around an action policy.</p>
+<p>The task agent converts a complete instruction into ordered subtasks and grounds the relevant objects in the scene. An adapted <strong>π₀.₅</strong> policy generates actions from the active subtask, spatial prompts, recent images, and robot state. A separately trained progress evaluator controls subtask transitions. The framework retains task records across the episode and refreshes local memory and grounding at each transition.</p>
+<p>We evaluate Orchestra on <strong>RMBench</strong>, <strong>RMBench-Compose</strong>, and <strong>four real-world manipulation tasks</strong>. RMBench-Compose tests long-horizon composition after training on atomic skills and short trajectories.</p>
+</div>
+<div class="metrics"><div><span class="metric-label">RMBench</span><strong>68.22<span>%</span></strong><p>Mean success rate</p><small>+26.22 percentage points over Mem-0</small></div><div><span class="metric-label">RMBench-Compose</span><strong>7.35</strong><p>Average success length</p><small>2.46× HarnessVLA</small></div><div><span class="metric-label">Real-world manipulation</span><strong>2.75</strong><p>Average success length</p><small>+25.0% over Orchestra with base π₀.₅</small></div></div></section>
+<section id="demos" class="section"><div class="section-heading"><p class="eyebrow">02 / In the real world</p><h2>One instruction.<br>Many steps forward.</h2><p>Four manipulation tasks, from preparing breakfast to arranging objects.<br>Demonstrations are shown at 2× speed.</p></div><div class="demo-grid"><article class="demo"><video controls playsinline preload="none" poster="media/breakfast_preparation.jpg" aria-label="Breakfast preparation demonstration"><source src="media/breakfast_preparation_demo_2x.mp4" type="video/mp4"><a href="media/breakfast_preparation_demo_2x.mp4">Watch Breakfast preparation</a></video><div class="demo-caption"><h3>Breakfast preparation</h3><span>4 subtasks</span></div></article><article class="demo"><video controls playsinline preload="none" poster="media/fruit_bowl.jpg" aria-label="Fruit bowl placement demonstration"><source src="media/fruit_bowl_demo_2x.mp4" type="video/mp4"><a href="media/fruit_bowl_demo_2x.mp4">Watch Fruit bowl placement</a></video><div class="demo-caption"><h3>Fruit bowl placement</h3><span>3 subtasks</span></div></article><article class="demo"><video controls playsinline preload="none" poster="media/number_order.jpg" aria-label="Number ordering demonstration"><source src="media/number_order_demo_2x.mp4" type="video/mp4"><a href="media/number_order_demo_2x.mp4">Watch Number ordering</a></video><div class="demo-caption"><h3>Number ordering</h3><span>3 subtasks</span></div></article><article class="demo"><video controls playsinline preload="none" poster="media/sorting_object.jpg" aria-label="Trash bin placement demonstration"><source src="media/sorting_object_demo_2x.mp4" type="video/mp4"><a href="media/sorting_object_demo_2x.mp4">Watch Trash bin placement</a></video><div class="demo-caption"><h3>Trash bin placement</h3><span>5 subtasks</span></div></article></div></section>
+<section id="results" class="section"><div class="section-heading"><p class="eyebrow">03 / Experiments</p><h2>Built for the long horizon.</h2><p>Memory, composition, and real-world manipulation.</p></div><div class="results"><p><strong>Metrics.</strong> Success rate measures task completion. Subtask Success Rate (SSR) measures success at the subtask level. Average Success Length (ASL) counts consecutive successful subtasks from the beginning of an episode.</p>
+<h3>RMBench: memory-dependent manipulation</h3>
+<p>Across nine tasks, Orchestra achieves <strong>68.22% mean success</strong>, compared with <strong>42.00%</strong> for Mem-0 and <strong>26.78%</strong> for HarnessVLA.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Experimental results table"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th style="text-align:right">Mean success rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>π₀.₅</td>
+<td style="text-align:right">10.44%</td>
+</tr>
+<tr>
+<td>MemoryVLA (QwenOFT)</td>
+<td style="text-align:right">41.78%</td>
+</tr>
+<tr>
+<td>Mem-0</td>
+<td style="text-align:right">42.00%</td>
+</tr>
+<tr>
+<td>HarnessVLA (Codex)</td>
+<td style="text-align:right">26.78%</td>
+</tr>
+<tr>
+<td><strong>Orchestra</strong></td>
+<td style="text-align:right"><strong>68.22%</strong></td>
+</tr>
+</tbody>
+</table></div>
+<details>
+<summary><strong>Full comparison across all nine tasks — Table 1</strong></summary>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Experimental results table"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th style="text-align:right">Observe &amp; Pick Up</th>
+<th style="text-align:right">Rearrange Blocks</th>
+<th style="text-align:right">Put Back Block</th>
+<th style="text-align:right">Swap Blocks</th>
+<th style="text-align:right">Swap T</th>
+<th style="text-align:right">Battery Try</th>
+<th style="text-align:right">Blocks Ranking Try</th>
+<th style="text-align:right">Cover Blocks</th>
+<th style="text-align:right">Press Button</th>
+<th style="text-align:right">Mean</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DP</td>
+<td style="text-align:right">1%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">11%</td>
+<td style="text-align:right"><strong>20%</strong></td>
+<td style="text-align:right">10%</td>
+<td style="text-align:right">10%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">5.78%</td>
+</tr>
+<tr>
+<td>ACT</td>
+<td style="text-align:right">1%</td>
+<td style="text-align:right">29%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">2%</td>
+<td style="text-align:right">2%</td>
+<td style="text-align:right">19%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">5.89%</td>
+</tr>
+<tr>
+<td>π₀.₅</td>
+<td style="text-align:right">9%</td>
+<td style="text-align:right">13%</td>
+<td style="text-align:right">11%</td>
+<td style="text-align:right">24%</td>
+<td style="text-align:right">15%</td>
+<td style="text-align:right">16%</td>
+<td style="text-align:right">6%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">10.44%</td>
+</tr>
+<tr>
+<td>X-VLA</td>
+<td style="text-align:right">9%</td>
+<td style="text-align:right">13%</td>
+<td style="text-align:right">18%</td>
+<td style="text-align:right">16%</td>
+<td style="text-align:right">3%</td>
+<td style="text-align:right">26%</td>
+<td style="text-align:right">1%</td>
+<td style="text-align:right">2%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">9.78%</td>
+</tr>
+<tr>
+<td>QwenOFT</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">14%</td>
+<td style="text-align:right">37%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">5.67%</td>
+</tr>
+<tr>
+<td>MemER</td>
+<td style="text-align:right">7%</td>
+<td style="text-align:right">17%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">14%</td>
+<td style="text-align:right">7%</td>
+<td style="text-align:right">27%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">6%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">8.67%</td>
+</tr>
+<tr>
+<td>Mem-0</td>
+<td style="text-align:right">4%</td>
+<td style="text-align:right">89%</td>
+<td style="text-align:right"><strong>90%</strong></td>
+<td style="text-align:right">67%</td>
+<td style="text-align:right">14%</td>
+<td style="text-align:right">28%</td>
+<td style="text-align:right">18%</td>
+<td style="text-align:right">68%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">42.00%</td>
+</tr>
+<tr>
+<td>MemoryVLA (OpenVLA)</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">22%</td>
+<td style="text-align:right">50%</td>
+<td style="text-align:right">17%</td>
+<td style="text-align:right">9%</td>
+<td style="text-align:right">25%</td>
+<td style="text-align:right">12%</td>
+<td style="text-align:right">40%</td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">19.44%</td>
+</tr>
+<tr>
+<td>MemoryVLA (QwenOFT)</td>
+<td style="text-align:right">2%</td>
+<td style="text-align:right">53%</td>
+<td style="text-align:right">81%</td>
+<td style="text-align:right">76%</td>
+<td style="text-align:right">9%</td>
+<td style="text-align:right"><strong>33%</strong></td>
+<td style="text-align:right">53%</td>
+<td style="text-align:right"><strong>69%</strong></td>
+<td style="text-align:right">0%</td>
+<td style="text-align:right">41.78%</td>
+</tr>
+<tr>
+<td>HarnessVLA (Codex)</td>
+<td style="text-align:right">10%</td>
+<td style="text-align:right">32%</td>
+<td style="text-align:right">62%</td>
+<td style="text-align:right">18%</td>
+<td style="text-align:right">5%</td>
+<td style="text-align:right">24%</td>
+<td style="text-align:right">20%</td>
+<td style="text-align:right">26%</td>
+<td style="text-align:right">44%</td>
+<td style="text-align:right">26.78%</td>
+</tr>
+<tr>
+<td><strong>Orchestra</strong></td>
+<td style="text-align:right"><strong>81%</strong></td>
+<td style="text-align:right"><strong>95%</strong></td>
+<td style="text-align:right">81%</td>
+<td style="text-align:right"><strong>86%</strong></td>
+<td style="text-align:right">10%</td>
+<td style="text-align:right">30%</td>
+<td style="text-align:right"><strong>65%</strong></td>
+<td style="text-align:right"><strong>69%</strong></td>
+<td style="text-align:right"><strong>97%</strong></td>
+<td style="text-align:right"><strong>68.22%</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>Best results in each column are shown in bold.</p>
+</details>
+<h3>RMBench-Compose: composition beyond the training horizon</h3>
+<p>RMBench-Compose spans <strong>five environments</strong> with <strong>6–18 subtasks</strong> per instruction. Policies train on atomic skills and short trajectories; evaluation requires completing longer sequences as object states change.</p>
+<p><img loading="lazy" src="media/compose-results.png" alt="RMBench-Compose performance" /></p>
+<p><em>Figure 3. Atomic skill success, compositional performance, and per-environment ASL. Dashed lines indicate task lengths.</em></p>
+<p>Orchestra reaches <strong>7.350 ASL</strong>, compared with <strong>2.986</strong> for HarnessVLA. Removing task orchestration, visual memory, or spatial grounding reduces mean ASL to <strong>1.502</strong>, <strong>2.500</strong>, and <strong>5.814</strong>, respectively.</p>
+<details>
+<summary><strong>Component ablations by environment — Figure 4</strong></summary>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Experimental results table"><table>
+<thead>
+<tr>
+<th>Configuration</th>
+<th style="text-align:right">Pick up object</th>
+<th style="text-align:right">Cover / uncover block</th>
+<th style="text-align:right">Press button</th>
+<th style="text-align:right">Swap block</th>
+<th style="text-align:right">Place block on mat</th>
+<th style="text-align:right">Mean</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Orchestra</strong></td>
+<td style="text-align:right"><strong>2.11</strong></td>
+<td style="text-align:right"><strong>5.82</strong></td>
+<td style="text-align:right"><strong>5.79</strong></td>
+<td style="text-align:right"><strong>9.97</strong></td>
+<td style="text-align:right"><strong>13.06</strong></td>
+<td style="text-align:right"><strong>7.350</strong></td>
+</tr>
+<tr>
+<td>Without spatial grounding</td>
+<td style="text-align:right">2.00</td>
+<td style="text-align:right">2.81</td>
+<td style="text-align:right">5.02</td>
+<td style="text-align:right">7.29</td>
+<td style="text-align:right">11.95</td>
+<td style="text-align:right">5.814</td>
+</tr>
+<tr>
+<td>Without visual memory</td>
+<td style="text-align:right">1.69</td>
+<td style="text-align:right">2.47</td>
+<td style="text-align:right">1.28</td>
+<td style="text-align:right">4.87</td>
+<td style="text-align:right">2.19</td>
+<td style="text-align:right">2.500</td>
+</tr>
+<tr>
+<td>Without task orchestration</td>
+<td style="text-align:right">1.07</td>
+<td style="text-align:right">1.89</td>
+<td style="text-align:right">1.20</td>
+<td style="text-align:right">2.30</td>
+<td style="text-align:right">1.05</td>
+<td style="text-align:right">1.502</td>
+</tr>
+</tbody>
+</table></div>
+<p>All values are ASL.</p>
+</details>
+<h3>Real-world manipulation</h3>
+<p>We evaluate four tasks using <strong>20 matched instructions per task and configuration</strong>, totaling 80 rollouts per configuration. Instructions contain <strong>3–5 subtasks</strong>.</p>
+<p><img loading="lazy" src="media/real-world-results.png" alt="Real-world results and grounded subtask examples" /></p>
+<p><em>Figure 5. Real-world performance and examples of object grounding across successive subtasks.</em></p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Experimental results table"><table>
+<thead>
+<tr>
+<th>Task</th>
+<th style="text-align:center">Subtasks</th>
+<th style="text-align:right">ASL: Orchestra with base π₀.₅</th>
+<th style="text-align:right">ASL: Orchestra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Breakfast Preparation</td>
+<td style="text-align:center">4</td>
+<td style="text-align:right">2.15</td>
+<td style="text-align:right"><strong>2.70</strong></td>
+</tr>
+<tr>
+<td>Fruit Bowl Placement</td>
+<td style="text-align:center">3</td>
+<td style="text-align:right">2.05</td>
+<td style="text-align:right"><strong>2.60</strong></td>
+</tr>
+<tr>
+<td>Number Ordering</td>
+<td style="text-align:center">3</td>
+<td style="text-align:right">1.85</td>
+<td style="text-align:right"><strong>2.15</strong></td>
+</tr>
+<tr>
+<td>Trash Bin Placement</td>
+<td style="text-align:center">5</td>
+<td style="text-align:right">2.75</td>
+<td style="text-align:right"><strong>3.55</strong></td>
+</tr>
+<tr>
+<td><strong>Mean</strong></td>
+<td style="text-align:center"></td>
+<td style="text-align:right"><strong>2.20</strong></td>
+<td style="text-align:right"><strong>2.75</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>The spatially and temporally conditioned policy improves mean SSR from <strong>72.77% to 82.09%</strong> and mean ASL from <strong>2.20 to 2.75</strong>.</p>
+</div></section>
+</main>
+<footer><a class="wordmark" href="#">Orchestra<span class="title-dot">.</span></a><p>Let the Mind Conceive, Let the Hand Achieve.</p><a href="https://github.com/jirufengyu/Orchestra">Explore the code ↗</a></footer>
+</body>
+</html>
